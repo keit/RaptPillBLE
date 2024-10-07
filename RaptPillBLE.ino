@@ -1,5 +1,4 @@
 #include "WiFiS3.h"
-#include "WiFiSSLClient.h"
 #include "IPAddress.h"
 #include <ArduinoJson.h>
 #include <ArduinoBLE.h>
@@ -7,6 +6,7 @@
 #include "arduino_secrets.h"
 #include "HttpServerUtils.h"
 #include "ControllerData.h"
+#include "DataUploader.h"
 
 #define POWER 7
 #define HEATER_ON_LED 0
@@ -22,10 +22,6 @@ WiFiServer server(80);  // HTTP server on port 80
 // RAPT Pill's BLE address can be reliably calculated
 // by taking the the MAC address used for registration and adding 2 on the last octet.
 const String broadcasterAddress = RAPT_PILL_BLE_MAC_ADDRESS;  // MAC address for BLE.
-
-// WiFi client for HTTPS
-WiFiSSLClient id_client;
-WiFiSSLClient api_client;
 
 ControllerData ctrlData;
 
@@ -141,35 +137,13 @@ void handleClient(WiFiClient& client) {
 }
 
 void bleCentralDiscoverHandler(BLEDevice peripheral) {
-  // discovered a peripheral
-  Serial.println("Discovered a peripheral");
-  Serial.println("-----------------------");
-
-  // print address
-  Serial.print("Address: ");
-  Serial.println(peripheral.address());
-  Serial.print("Device name: ");
-  Serial.println(peripheral.deviceName());
-  Serial.print("Device local name: ");
-  Serial.println(peripheral.localName());
-
-  Serial.print("RSSI: ");
-  Serial.println(peripheral.rssi());
-
   if (peripheral.hasManufacturerData()) {
     int len = peripheral.manufacturerDataLength();
     uint8_t manufactureData[len];
     peripheral.manufacturerData(manufactureData, len);
 
-    // for (int i = 0; i < len; i++) {
-    //   Serial.println(manufactureData[i], HEX);
-    //   Serial.println(" ");
-    // }
     if (parseRaptPillDataV2(manufactureData, len, ctrlData)) {
-      Serial.print("Temperature (C): ");
-      Serial.println(ctrlData.currentTemp);
-      Serial.print("Specific Gravity: ");
-      Serial.println(ctrlData.currentGravity);
+      uploadData(ctrlData);
       switchPower(ctrlData.heaterStatus);
       updateMemorySize(ctrlData);
     } else {

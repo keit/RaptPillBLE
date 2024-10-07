@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "WiFiS3.h"
-#include "WiFiSSLClient.h"
 #include <ArduinoJson.h>
 #include "HttpServerUtils.h"
 #include "arduino_secrets.h"
