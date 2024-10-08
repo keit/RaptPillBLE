@@ -12,7 +12,6 @@ struct ControllerData {
   float heaterThreshold;
   float battery;
   int memory;
-  bool refreshNow;
 };
 
 void initCtrlData(ControllerData &ctrlData);
